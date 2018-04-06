@@ -2,32 +2,32 @@ library(tidyverse)
 library(leaflet)
 library(shiny)
 library(RColorBrewer)
-data <- readxl::read_excel("GreekData.xlsx")
-# omaha_data <- data %>% filter(CityName == "Omaha")
-names(data) <- c("Name", "Location", "Lat/Long", "Latitude", "Longitude", "Actual", "Date", "Region", "URL")
+
+data <- readxl::read_excel("~/Downloads/ReamesProject.xls")
+
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body { width: 100%; height: 100%"),
-  tags$head(includeCSS("styles.css")),
+  #tags$head(includeCSS("styles.css")),
   leafletOutput("map", width = "100%", height = "100%")
   # absolutePanel(h3("Usage of Hephestian"),
   #               id = "controls", class = "panel panel-default", top = 10, right = 10,
   #               fixed = TRUE, draggable = FALSE, width = 330, height = "auto",
-# 
-#                 selectInput("range", "Year:",
-#                             c("2008", "2009", "2010", "2011", "2012", "2013", "2014")),
-                # 
-                # # Type filter
-                # selectInput("bytype", "Choose type: ", choices = NULL),
-                
-                # Histogram 
-                # plotOutput("histCentile", height = 200),
-                # plotOutput("lineTrend", height = 140),
-               
-                # Conditions filter 
-                # selectInput("Region", "Region:", choices = NULL),
-                # 
-                # tags$p(tags$small(includeHTML("attr.html")))
-                
+  # 
+  #                 selectInput("range", "Year:",
+  #                             c("2008", "2009", "2010", "2011", "2012", "2013", "2014")),
+  # 
+  # # Type filter
+  # selectInput("bytype", "Choose type: ", choices = NULL),
+  
+  # Histogram 
+  # plotOutput("histCentile", height = 200),
+  # plotOutput("lineTrend", height = 140),
+  
+  # Conditions filter 
+  # selectInput("Region", "Region:", choices = NULL),
+  # 
+  # tags$p(tags$small(includeHTML("attr.html")))
+  
   # )
 )
 server <- function(input, output, session) {
@@ -36,7 +36,7 @@ server <- function(input, output, session) {
   # names(conditions_list) <- conditions_list
   # updateSelectInput(session, "Region", choices = conditions_list)
   
-   # type_list <- omaha_data$bytype
+  # type_list <- omaha_data$bytype
   # names(type_list) <- type_list
   # updateSelectInput(session, "bytype", choices = type_list)
   
@@ -44,14 +44,14 @@ server <- function(input, output, session) {
   
   # filteredData <- reactive({
   #   data %>% filter(Region == input$Region)# %>%
-    #print(input$bytype)
-                   #filter(bytype %in% input$bytype)
-    
+  #print(input$bytype)
+  #filter(bytype %in% input$bytype)
+  
   # })
   
   output$map <- renderLeaflet({
-    leaflet(data) %>% addProviderTiles(provider = "Stamen.Watercolor") %>% 
-      fitBounds(~min(Longitude), ~min(Latitude), ~max(Longitude), ~max(Latitude))
+    leaflet(data) %>% 
+      fitBounds(~min(Long), ~min(Lat), ~max(Long), ~max(Lat))
   })
   
   # filteredSeverity <- reactive({
@@ -87,11 +87,11 @@ server <- function(input, output, session) {
     # pal <- colorpal()
     pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
     
-    leaflet("map", data = data) %>% 
+    leafletProxy("map", data = data) %>% 
       # clearMarkers() %>% 
       # clearControls() %>% 
       addTiles() %>%
-      # addProviderTiles(provider = "Stamen.Watercolor") %>% 
+      addProviderTiles(provider = "CartoDB.Positron") %>% 
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
                        fillOpacity = 1,
