@@ -4,9 +4,7 @@ library(shiny)
 library(RColorBrewer)
 
 data <- readxl::read_excel("GreekData.xlsx")
-# omaha_data <- data %>% filter(CityName == "Omaha")
 names(data) <- c("Name", "Location", "Lat/Long", "Latitude", "Longitude", "Actual", "Date", "Region", "URL")
-
 
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body { width: 100%; height: 100%"),
@@ -15,39 +13,36 @@ ui <- bootstrapPage(
   absolutePanel(h3("Usage of Hephestian"),
                 id = "controls", class = "panel panel-default", top = 10, right = 10,
                 fixed = TRUE, draggable = FALSE, width = 330, height = "auto",
-# 
-#                 selectInput("range", "Year:",
-#                             c("2008", "2009", "2010", "2011", "2012", "2013", "2014")),
-                # 
-                # # Type filter
-                # selectInput("bytype", "Choose type: ", choices = NULL),
-                
-                # Histogram 
-                # plotOutput("histCentile", height = 200),
-                # plotOutput("lineTrend", height = 140),
                
                 # Conditions filter 
-                selectInput("Region", "Region:", choices = NULL)
-                # 
-                # tags$p(tags$small(includeHTML("attr.html")))
+                selectInput("Region", "Region:", choices = NULL),
+                selectInput("timeframe", "Era:", choices = NULL),
+                # temp plot
+                plotOutput("timebar", height = 200),
+                
+                # TODO: Add legend for names to help distinguish points
+                 
+                tags$p(tags$small(includeHTML("attr.html")))
                 
    )
 )
 
 server <- function(input, output, session) {
-  
+ 
+  # First we set up dropdown options for 1) regions, and 2) time periods 
   region_list <- data$Region
   names(region_list) <- region_list
   updateSelectInput(session, "Region", choices = region_list)
   
-  # type_list <- omaha_data$bytype
-  # names(type_list) <- type_list
-  # updateSelectInput(session, "bytype", choices = type_list)
+  time_list <- data$Date
+  names(time_list) <- time_list
+  updateSelectInput(session, "timeframe", choices = time_list)
   
-  pallete <- brewer.pal(10, "Paired")
+  # Setup the color palette for displaying names 
+  palette <- brewer.pal(10, "Paired")
   
   colorpal <- reactive({
-    colorFactor(pallete, data$Name)
+    colorFactor(palette, data$Name)
   })
   
   output$map <- renderLeaflet({
@@ -57,52 +52,16 @@ server <- function(input, output, session) {
   })
   
   filteredData <- reactive({
-   data %>% filter(Region == input$Region
-        #           Lat == data$Latitude,
-         #          Long == data$Longitude
-        )
+   data %>% filter(Region == input$Region)
    })
   
-  
-  # filteredSeverity <- reactive({
-  #   omaha_data %>% filter(year == input$range)
-  # })
-  
   observe({
-    # pal <- colorpal()
-    # 
-    # leafletProxy("map", data = filteredData()) %>% 
-    #   clearMarkers() %>% 
-    #   clearControls() %>% 
-    #   addCircleMarkers(radius = 6,
-    #                    stroke = FALSE,
-    #                    fillColor = ~pal(accidentseverity),
-    #                    fillOpacity = 0.7,
-    #                    popup = ~paste("Severity: ", accidentseverity, 
-    #                                   "<br/>",
-    #                                   "Injuries: ", totalinjuries,
-    #                                   "<br/>",
-    #                                   "Fatalities: ", totalfatalities,
-    #                                   "<br/>",
-    #                                   "Type: ", bytype,
-    #                                   "<br/>",
-    #                                   "Conditions: ", weather,
-    #                                   "<br/>",
-    #                                   "Alcohol involved: ", alcohol)
-    #   ) %>% 
-    #   addLegend("bottomleft", pal = pal, values = ~accidentseverity,
-    #             title = "Accident Severity",
-    #             opacity = 1)
-    
-    #pal <- colorpal()
     pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
    
-    leafletProxy("map", data = data) %>%
+    leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
-      addTiles() %>%
-      addProviderTiles(provider = "Stamen.Watercolor") %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
                        fillOpacity = 1,
@@ -111,24 +70,17 @@ server <- function(input, output, session) {
                        clusterOptions = markerClusterOptions())
     
   })
-
   
-  # output$histCentile <- renderPlot({
-  #   ggplot(filteredSeverity(), aes(x = accidentseverity)) +
-  #     geom_bar(stat = "count", aes(fill = bytype)) +
-  #     theme_minimal() +
-  #     labs(title = paste("Accident Severity in", input$range)) +
-  #     xlab("Accident Severity (1 = most severe)") +
-  #     ylab("No. of Accidents")
-  # })
-  
-  # output$lineTrend <- renderPlot({
-  #   ggplot(omaha_data, aes(x = year, color = bytype)) +
-  #     geom_line(stat = "count") +
-  #     theme(legend.title = element_blank()) +
-  #     labs(title = "Trend for All Years") +
-  #     geom_vline(xintercept=as.numeric(input$range), linetype = 1)
-  # })
+  output$timebar <- renderPlot({
+    ggplot(data, aes(x = Date)) +
+      geom_bar(stat = "count", aes(fill = Region)) +
+      theme_minimal() +
+      theme(legend.position = "none") +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+      ggtitle("TEMPORARY: Number of events") +
+      xlab("Time period") +
+      ylab("No. of events")
+  })
   
 }
 
