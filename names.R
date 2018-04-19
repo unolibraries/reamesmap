@@ -45,7 +45,7 @@ server <- function(input, output, session) {
   regionChoiceT <- c("All", "None", region_listT)
   updateSelectInput(session, "RegionT", choices = regionChoiceT)
   
-  pallete <- brewer.pal(10, "Paired")
+  pallete <- brewer.pal(9, "Set1")
   
   colorpal <- reactive({
     colorFactor(pallete, data$Name)
@@ -117,8 +117,11 @@ server <- function(input, output, session) {
       #addTiles() %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
+                       opacity = 1,
+                       weight = 1,
+                       color = '#000000',
                        fillOpacity = 1,
-                       color = ~pal(Name),
+                       fillColor = ~pal(Name),
                        popup = ~paste(Name),
                        clusterOptions = markerClusterOptions())
     }
@@ -126,14 +129,20 @@ server <- function(input, output, session) {
     ### Map dataset two
     if ("None" %in% input$RegionT) {
       leafletProxy("map", data = filteredDataTwo()) %>%
-        clearMarkers()  
+        clearMarkers() %>%
+        addLegend("bottomleft", pal = pal, values = data$Name,
+                title = "Names",
+                opacity = 1)
     } else {
     leafletProxy("map", data = filteredDataTwo()) %>%
       clearMarkers() %>%
       clearControls() %>%
       #addTiles() %>%
       addMarkers(popup = ~paste(NameT),
-                 clusterOptions = markerClusterOptions())
+                 clusterOptions = markerClusterOptions()) %>%
+      addLegend("bottomleft", pal = pal, values = data$Name,
+                  title = "Names",
+                  opacity = 1)
     }
   })
 
