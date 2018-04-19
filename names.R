@@ -97,7 +97,7 @@ server <- function(input, output, session) {
     #pal <- colorpal()
     pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
    
-    leafletProxy("map", data = data) %>%
+    leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
