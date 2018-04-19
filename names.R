@@ -123,7 +123,8 @@ server <- function(input, output, session) {
       clearMarkers() %>%
       clearControls() %>%
       addTiles() %>%
-      addMarkers(popup = ~paste(NameT))
+      addMarkers(popup = ~paste(NameT),
+                 clusterOptions = markerClusterOptions())
     
   })
 
