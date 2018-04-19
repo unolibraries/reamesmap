@@ -4,8 +4,11 @@ library(shiny)
 library(RColorBrewer)
 
 data <- readxl::read_excel("GreekData.xlsx")
+dataTwo <- readxl::read_excel("ReamesDataTwo.xlsx")
+dataThree <- readxl::read_excel("ReamesDataThree.xlsx")
 # omaha_data <- data %>% filter(CityName == "Omaha")
 names(data) <- c("Name", "Location", "Lat/Long", "Latitude", "Longitude", "Actual", "Date", "Region", "URL")
+names(dataTwo) <- c("NameT", "LocationT", "Lat/LongT", "Latitude", "Longitude", "ActualT", "DateT", "RegionT", "URLT")
 
 
 ui <- bootstrapPage(
@@ -26,8 +29,11 @@ ui <- bootstrapPage(
                 # plotOutput("histCentile", height = 200),
                 # plotOutput("lineTrend", height = 140),
                
-                # Conditions filter 
-                selectInput("Region", "Region:", choices = NULL)
+                # Region filters 
+                selectInput("Region", "Region:", choices = NULL),
+                
+                selectInput("RegionT", "Region:", choices = NULL)
+
                 # 
                 # tags$p(tags$small(includeHTML("attr.html")))
                 
@@ -38,7 +44,13 @@ server <- function(input, output, session) {
   
   region_list <- data$Region
   names(region_list) <- region_list
-  updateSelectInput(session, "Region", choices = region_list)
+  regionChoice <- c("All", region_list)
+  updateSelectInput(session, "Region", choices = regionChoice)
+  
+  region_listT <- dataTwo$RegionT
+  names(region_listT) <- region_listT
+  regionChoiceT <- c("All", region_listT)
+  updateSelectInput(session, "RegionT", choices = regionChoiceT)
   
   # type_list <- omaha_data$bytype
   # names(type_list) <- type_list
@@ -57,11 +69,23 @@ server <- function(input, output, session) {
   })
   
   filteredData <- reactive({
-   data %>% filter(Region == input$Region
-        #           Lat == data$Latitude,
-         #          Long == data$Longitude
-        )
+   if ("All" %in% input$Region){
+      data
+   }
+   else {
+      data %>% filter(Region == input$Region)
+   }
    })
+  
+  
+  filteredDataTwo <- reactive({
+    if ("All" %in% input$RegionT){
+      dataTwo
+    }
+    else {
+      dataTwo %>% filter(RegionT == input$RegionT)
+    }
+  })
   
   
   # filteredSeverity <- reactive({
@@ -94,21 +118,34 @@ server <- function(input, output, session) {
     #             title = "Accident Severity",
     #             opacity = 1)
     
-    #pal <- colorpal()
-    pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
+    pal <- colorpal()
+    #pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
    
+   #if ("All" %in% input$Region) {
+      # choose all the choices _except_ "Select All"
+    #  selected_choices <- setdiff(names, "All")
+    #  updateSelectInput(session, "Region", selected = selected_choices)
+    #}
+    
     leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
       addTiles() %>%
-      addProviderTiles(provider = "Stamen.Watercolor") %>%
+    # # addProviderTiles(provider = "Stamen.Watercolor") %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
                        fillOpacity = 1,
                        color = ~pal(Name),
                        popup = ~paste(Name),
                        clusterOptions = markerClusterOptions())
+    
+    leafletProxy("map", data = filteredDataTwo()) %>%
+      #clearMarkerClusters() %>%
+      clearMarkers() %>%
+      clearControls() %>%
+      addTiles() %>%
+      addMarkers(popup = ~paste(NameT))
     
   })
 
