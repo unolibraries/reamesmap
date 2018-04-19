@@ -37,12 +37,12 @@ server <- function(input, output, session) {
   
   region_list <- data$Region
   names(region_list) <- region_list
-  regionChoice <- c("All", region_list)
+  regionChoice <- c("All", "None", region_list)
   updateSelectInput(session, "Region", choices = regionChoice)
   
   region_listT <- dataTwo$RegionT
   names(region_listT) <- region_listT
-  regionChoiceT <- c("All", region_listT)
+  regionChoiceT <- c("All", "None", region_listT)
   updateSelectInput(session, "RegionT", choices = regionChoiceT)
   
   pallete <- brewer.pal(10, "Paired")
@@ -60,11 +60,10 @@ server <- function(input, output, session) {
   filteredData <- reactive({
    if ("All" %in% input$Region){
       data
-   }
-   else {
+   } else {
       data %>% filter(Region == input$Region)
    }
-   })
+  })
   
   
   filteredDataTwo <- reactive({
@@ -105,27 +104,37 @@ server <- function(input, output, session) {
     
     pal <- colorpal()
     
+    ### Map dataset one
+    if ("None" %in% input$Region) {
+      leafletProxy("map", data = filteredData()) %>%
+        clearMarkerClusters() %>%
+        clearMarkers()  
+    } else {
     leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
-      addTiles() %>%
-    # # addProviderTiles(provider = "Stamen.Watercolor") %>%
+      #addTiles() %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
                        fillOpacity = 1,
                        color = ~pal(Name),
                        popup = ~paste(Name),
                        clusterOptions = markerClusterOptions())
+    }
     
+    ### Map dataset two
+    if ("None" %in% input$RegionT) {
+      leafletProxy("map", data = filteredDataTwo()) %>%
+        clearMarkers()  
+    } else {
     leafletProxy("map", data = filteredDataTwo()) %>%
-      #clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
-      addTiles() %>%
+      #addTiles() %>%
       addMarkers(popup = ~paste(NameT),
                  clusterOptions = markerClusterOptions())
-    
+    }
   })
 
   
