@@ -6,7 +6,6 @@ library(RColorBrewer)
 data <- readxl::read_excel("GreekData.xlsx")
 dataTwo <- readxl::read_excel("ReamesDataTwo.xlsx")
 dataThree <- readxl::read_excel("ReamesDataThree.xlsx")
-# omaha_data <- data %>% filter(CityName == "Omaha")
 names(data) <- c("Name", "Location", "Lat/Long", "Latitude", "Longitude", "Actual", "Date", "Region", "URL")
 names(dataTwo) <- c("NameT", "LocationT", "Lat/LongT", "Latitude", "Longitude", "ActualT", "DateT", "RegionT", "URLT")
 
@@ -18,12 +17,6 @@ ui <- bootstrapPage(
   absolutePanel(h3("Usage of Hephestian"),
                 id = "controls", class = "panel panel-default", top = 10, right = 10,
                 fixed = TRUE, draggable = FALSE, width = 330, height = "auto",
-# 
-#                 selectInput("range", "Year:",
-#                             c("2008", "2009", "2010", "2011", "2012", "2013", "2014")),
-                # 
-                # # Type filter
-                # selectInput("bytype", "Choose type: ", choices = NULL),
                 
                 # Histogram 
                 # plotOutput("histCentile", height = 200),
@@ -51,10 +44,6 @@ server <- function(input, output, session) {
   names(region_listT) <- region_listT
   regionChoiceT <- c("All", region_listT)
   updateSelectInput(session, "RegionT", choices = regionChoiceT)
-  
-  # type_list <- omaha_data$bytype
-  # names(type_list) <- type_list
-  # updateSelectInput(session, "bytype", choices = type_list)
   
   pallete <- brewer.pal(10, "Paired")
   
@@ -88,10 +77,6 @@ server <- function(input, output, session) {
   })
   
   
-  # filteredSeverity <- reactive({
-  #   omaha_data %>% filter(year == input$range)
-  # })
-  
   observe({
     # pal <- colorpal()
     # 
@@ -119,13 +104,6 @@ server <- function(input, output, session) {
     #             opacity = 1)
     
     pal <- colorpal()
-    #pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
-   
-   #if ("All" %in% input$Region) {
-      # choose all the choices _except_ "Select All"
-    #  selected_choices <- setdiff(names, "All")
-    #  updateSelectInput(session, "Region", selected = selected_choices)
-    #}
     
     leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
