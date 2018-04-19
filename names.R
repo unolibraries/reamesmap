@@ -24,13 +24,14 @@ ui <- bootstrapPage(
                
                 # Region filters 
                 selectInput("Region", "Region:", choices = NULL),
+                selectInput("Name", "Name:", choices = NULL),
                 
-                selectInput("RegionT", "Region:", choices = NULL)
-
+                selectInput("RegionT", "Region Two:", choices = NULL)
+                
                 # 
                 # tags$p(tags$small(includeHTML("attr.html")))
                 
-   )
+  )
 )
 
 server <- function(input, output, session) {
@@ -39,6 +40,11 @@ server <- function(input, output, session) {
   names(region_list) <- region_list
   regionChoice <- c("All", "None", region_list)
   updateSelectInput(session, "Region", choices = regionChoice)
+  
+  name_list <- data$Name
+  names(name_list) <- name_list
+  nameChoice <- c("All", name_list)
+  updateSelectInput(session, "Name", choices = nameChoice)
   
   region_listT <- dataTwo$RegionT
   names(region_listT) <- region_listT
@@ -58,11 +64,19 @@ server <- function(input, output, session) {
   })
   
   filteredData <- reactive({
-   if ("All" %in% input$Region){
+    if ("All" %in% input$Region && "All" %in% input$Name){
       data
-   } else {
+    }
+    else if ("All" %in% input$Region && !("All" %in% input$Name)) {
+      data %>% filter(Name == input$Name)
+    }
+    else if (!("All" %in% input$Region) && "All" %in% input$Name) {
       data %>% filter(Region == input$Region)
-   }
+    }
+    else {
+      data %>% filter(Region == input$Region,
+                      Name == input$Name)
+    }
   })
   
   
@@ -123,26 +137,23 @@ server <- function(input, output, session) {
                        fillOpacity = 1,
                        fillColor = ~pal(Name),
                        popup = ~paste(Name),
-                       clusterOptions = markerClusterOptions())
+                       clusterOptions = markerClusterOptions()) %>%
+      addLegend("bottomleft", pal = pal, values = data$Name,
+                  title = "Names",
+                  opacity = 1)
     }
     
     ### Map dataset two
     if ("None" %in% input$RegionT) {
       leafletProxy("map", data = filteredDataTwo()) %>%
-        clearMarkers() %>%
-        addLegend("bottomleft", pal = pal, values = data$Name,
-                title = "Names",
-                opacity = 1)
+        clearMarkers()
     } else {
     leafletProxy("map", data = filteredDataTwo()) %>%
       clearMarkers() %>%
-      clearControls() %>%
+      #clearControls() %>%
       #addTiles() %>%
       addMarkers(popup = ~paste(NameT),
-                 clusterOptions = markerClusterOptions()) %>%
-      addLegend("bottomleft", pal = pal, values = data$Name,
-                  title = "Names",
-                  opacity = 1)
+                 clusterOptions = markerClusterOptions())
     }
   })
 
@@ -167,3 +178,11 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+
+
+
+
+
+
+
