@@ -4,7 +4,11 @@ library(shiny)
 library(RColorBrewer)
 
 data <- readxl::read_excel("GreekData.xlsx")
+dataTwo <- readxl::read_excel("ReamesDataTwo.xlsx")
+dataThree <- readxl::read_excel("ReamesDataThree.xlsx")
+
 names(data) <- c("Name", "Location", "Lat/Long", "Latitude", "Longitude", "Actual", "Date", "Region", "URL")
+names(dataTwo) <- c("NameT", "LocationT", "Lat/LongT", "Latitude", "Longitude", "ActualT", "DateT", "RegionT", "URLT")
 
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body { width: 100%; height: 100%"),
@@ -13,7 +17,20 @@ ui <- bootstrapPage(
   absolutePanel(h3("Usage of Hephestian"),
                 id = "controls", class = "panel panel-default", top = 10, right = 10,
                 fixed = TRUE, draggable = FALSE, width = 330, height = "auto",
+                
+                # Histogram 
+                # plotOutput("histCentile", height = 200),
+                # plotOutput("lineTrend", height = 140),
                
+                # Region filters 
+                selectInput("Region", "Region:", choices = NULL),
+                selectInput("Name", "Name:", choices = NULL),
+                
+                selectInput("RegionT", "Region Two:", choices = NULL)
+                
+                # 
+                # tags$p(tags$small(includeHTML("attr.html")))
+                
                 # Conditions filter 
                 selectInput("Region", "Region:", choices = NULL),
                 selectInput("timeframe", "Era:", choices = NULL),
@@ -22,9 +39,8 @@ ui <- bootstrapPage(
                 
                 # TODO: Add legend for names to help distinguish points
                  
-                tags$p(tags$small(includeHTML("attr.html")))
-                
-   )
+                tags$p(tags$small(includeHTML("attr.html")))                
+  )
 )
 
 server <- function(input, output, session) {
@@ -32,8 +48,21 @@ server <- function(input, output, session) {
   # First we set up dropdown options for 1) regions, and 2) time periods 
   region_list <- data$Region
   names(region_list) <- region_list
-  updateSelectInput(session, "Region", choices = region_list)
+  regionChoice <- c("All", "None", region_list)
+  updateSelectInput(session, "Region", choices = regionChoice)
   
+  name_list <- data$Name
+  names(name_list) <- name_list
+  nameChoice <- c("All", name_list)
+  updateSelectInput(session, "Name", choices = nameChoice)
+  
+  region_listT <- dataTwo$RegionT
+  names(region_listT) <- region_listT
+  regionChoiceT <- c("All", "None", region_listT)
+  updateSelectInput(session, "RegionT", choices = regionChoiceT)
+  
+  pallete <- brewer.pal(9, "Set1")
+
   time_list <- data$Date
   names(time_list) <- time_list
   updateSelectInput(session, "timeframe", choices = time_list)
@@ -52,6 +81,66 @@ server <- function(input, output, session) {
   })
   
   filteredData <- reactive({
+    if ("All" %in% input$Region && "All" %in% input$Name){
+      data
+    }
+    else if ("All" %in% input$Region && !("All" %in% input$Name)) {
+      data %>% filter(Name == input$Name)
+    }
+    else if (!("All" %in% input$Region) && "All" %in% input$Name) {
+      data %>% filter(Region == input$Region)
+    }
+    else {
+      data %>% filter(Region == input$Region,
+                      Name == input$Name)
+    }
+  })
+  
+  
+  filteredDataTwo <- reactive({
+    if ("All" %in% input$RegionT){
+      dataTwo
+    }
+    else {
+      dataTwo %>% filter(RegionT == input$RegionT)
+    }
+  })
+  
+  
+  observe({
+    # pal <- colorpal()
+    # 
+    # leafletProxy("map", data = filteredData()) %>% 
+    #   clearMarkers() %>% 
+    #   clearControls() %>% 
+    #   addCircleMarkers(radius = 6,
+    #                    stroke = FALSE,
+    #                    fillColor = ~pal(accidentseverity),
+    #                    fillOpacity = 0.7,
+    #                    popup = ~paste("Severity: ", accidentseverity, 
+    #                                   "<br/>",
+    #                                   "Injuries: ", totalinjuries,
+    #                                   "<br/>",
+    #                                   "Fatalities: ", totalfatalities,
+    #                                   "<br/>",
+    #                                   "Type: ", bytype,
+    #                                   "<br/>",
+    #                                   "Conditions: ", weather,
+    #                                   "<br/>",
+    #                                   "Alcohol involved: ", alcohol)
+    #   ) %>% 
+    #   addLegend("bottomleft", pal = pal, values = ~accidentseverity,
+    #             title = "Accident Severity",
+    #             opacity = 1)
+    
+    pal <- colorpal()
+    
+    ### Map dataset one
+    if ("None" %in% input$Region) {
+      leafletProxy("map", data = filteredData()) %>%
+        clearMarkerClusters() %>%
+        clearMarkers()  
+    } else {
    data %>% filter(Region == input$Region)
    })
   
@@ -62,13 +151,33 @@ server <- function(input, output, session) {
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
+      #addTiles() %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
+                       opacity = 1,
+                       weight = 1,
+                       color = '#000000',
                        fillOpacity = 1,
-                       color = ~pal(Name),
+                       fillColor = ~pal(Name),
                        popup = ~paste(Name),
-                       clusterOptions = markerClusterOptions())
+                       clusterOptions = markerClusterOptions()) %>%
+      addLegend("bottomleft", pal = pal, values = data$Name,
+                  title = "Names",
+                  opacity = 1)
+    }
     
+    ### Map dataset two
+    if ("None" %in% input$RegionT) {
+      leafletProxy("map", data = filteredDataTwo()) %>%
+        clearMarkers()
+    } else {
+    leafletProxy("map", data = filteredDataTwo()) %>%
+      clearMarkers() %>%
+      #clearControls() %>%
+      #addTiles() %>%
+      addMarkers(popup = ~paste(NameT),
+                 clusterOptions = markerClusterOptions())
+    }
   })
   
   output$timebar <- renderPlot({
@@ -85,3 +194,11 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+
+
+
+
+
+
+
