@@ -26,7 +26,7 @@ ui <- bootstrapPage(
                 selectInput("Region", "Region:", choices = NULL),
                 selectInput("Name", "Name:", choices = NULL),
                 
-                selectInput("RegionT", "Region Two:", choices = NULL)
+                selectInput("RegionT", "Region Two:", choices = NULL),
                 
                 # 
                 # tags$p(tags$small(includeHTML("attr.html")))
@@ -108,31 +108,6 @@ server <- function(input, output, session) {
   
   
   observe({
-    # pal <- colorpal()
-    # 
-    # leafletProxy("map", data = filteredData()) %>% 
-    #   clearMarkers() %>% 
-    #   clearControls() %>% 
-    #   addCircleMarkers(radius = 6,
-    #                    stroke = FALSE,
-    #                    fillColor = ~pal(accidentseverity),
-    #                    fillOpacity = 0.7,
-    #                    popup = ~paste("Severity: ", accidentseverity, 
-    #                                   "<br/>",
-    #                                   "Injuries: ", totalinjuries,
-    #                                   "<br/>",
-    #                                   "Fatalities: ", totalfatalities,
-    #                                   "<br/>",
-    #                                   "Type: ", bytype,
-    #                                   "<br/>",
-    #                                   "Conditions: ", weather,
-    #                                   "<br/>",
-    #                                   "Alcohol involved: ", alcohol)
-    #   ) %>% 
-    #   addLegend("bottomleft", pal = pal, values = ~accidentseverity,
-    #             title = "Accident Severity",
-    #             opacity = 1)
-    
     pal <- colorpal()
     
     ### Map dataset one
@@ -141,8 +116,9 @@ server <- function(input, output, session) {
         clearMarkerClusters() %>%
         clearMarkers()  
     } else {
-   data %>% filter(Region == input$Region)
-   })
+      data %>% filter(Region == input$Region)
+    }
+  })
   
   observe({
     pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
@@ -164,7 +140,6 @@ server <- function(input, output, session) {
       addLegend("bottomleft", pal = pal, values = data$Name,
                   title = "Names",
                   opacity = 1)
-    }
     
     ### Map dataset two
     if ("None" %in% input$RegionT) {
