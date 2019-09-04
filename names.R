@@ -32,8 +32,8 @@ ui <- bootstrapPage(
                 # tags$p(tags$small(includeHTML("attr.html")))
                 
                 # Conditions filter 
-                selectInput("Region", "Region:", choices = NULL),
-                selectInput("timeframe", "Era:", choices = NULL),
+                #selectInput("Region", "Region:", choices = NULL),
+                selectInput("timeChoice", "Era:", choices = NULL),
                 # temp plot
                 plotOutput("timebar", height = 200),
                 
@@ -48,7 +48,7 @@ server <- function(input, output, session) {
   # First we set up dropdown options for 1) regions, and 2) time periods 
   region_list <- data$Region
   names(region_list) <- region_list
-  regionChoice <- c("All", "None", region_list)
+  regionChoice <- c("All", region_list)
   updateSelectInput(session, "Region", choices = regionChoice)
   
   name_list <- data$Name
@@ -58,17 +58,16 @@ server <- function(input, output, session) {
   
   region_listT <- dataTwo$RegionT
   names(region_listT) <- region_listT
-  regionChoiceT <- c("All", "None", region_listT)
+  regionChoiceT <- c("All", region_listT)
   updateSelectInput(session, "RegionT", choices = regionChoiceT)
   
-  pallete <- brewer.pal(9, "Set1")
-
   time_list <- data$Date
   names(time_list) <- time_list
-  updateSelectInput(session, "timeframe", choices = time_list)
+  timeChoice <- c("All", time_list)
+  updateSelectInput(session, "timeChoice", choices = timeChoice)
   
   # Setup the color palette for displaying names 
-  palette <- brewer.pal(10, "Paired")
+  palette <- brewer.pal(12, "Set3")
   
   colorpal <- reactive({
     colorFactor(palette, data$Name)
@@ -121,13 +120,12 @@ server <- function(input, output, session) {
   })
   
   observe({
-    pal <- colorFactor(c("navy", "red", "green", "orange", "pink", "purple", "yellow" ), domain = c("Ἡφαιστίων", "Ἡφαιστόδωρος", "Ἡφαίστιος", "Ἡφαιστόκλῆς", "Ἡφαιστόδοτος", "Ἡφαιστῆς", "Ἡφαιστιάδης"))
-   
+    pal <- colorFactor("Set3", data$Name)
+    
     leafletProxy("map", data = filteredData()) %>%
       clearMarkerClusters() %>%
       clearMarkers() %>%
       clearControls() %>%
-      #addTiles() %>%
       addCircleMarkers(radius = 7,
                        stroke = TRUE,
                        opacity = 1,
@@ -148,8 +146,6 @@ server <- function(input, output, session) {
     } else {
     leafletProxy("map", data = filteredDataTwo()) %>%
       clearMarkers() %>%
-      #clearControls() %>%
-      #addTiles() %>%
       addMarkers(popup = ~paste(NameT),
                  clusterOptions = markerClusterOptions())
     }
@@ -161,7 +157,7 @@ server <- function(input, output, session) {
       theme_minimal() +
       theme(legend.position = "none") +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-      ggtitle("TEMPORARY: Number of events") +
+      ggtitle("Number of events") +
       xlab("Time period") +
       ylab("No. of events")
   })
