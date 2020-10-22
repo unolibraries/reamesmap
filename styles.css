@@ -65,7 +65,6 @@ div.outer {
 
 body {
   font-family: 'Source Sans Pro', sans-serif;
-  margin-bottom : 150px;
 }
 
 element.style {
@@ -113,11 +112,9 @@ a:focus, a:hover {
 }
 
 /* Customize fonts */
-/*body, label, input, button, select { 
-  font-family: 'Helvetica Neue', Helvetica;
-  font-weight: 200;
-}*/
 h1, h2, h3, h4 { font-weight: 400; }
+
+p {max-width: 600px;}
 
 #controls {
   /* Appearance */
