@@ -14,21 +14,24 @@ val <- c("Attic", "Doric")
 col <- colorNumeric(c("#d13c3c", "#5f50e5"), 1:1)
 
 ui <- #bootstrapPage(
-  navbarPage("The Case of Hephaistion",
+  navbarPage("Mapping Identity",
+             id = "tab_being_displayed", # will set input$tab_being_displayed
              tabPanel("Introduction",
                       fluidPage(
-                        h3("Welcome to the Case of Hephaistion."),
-                        p("This project explores...")
+                        h3("Welcome to Mapping Identity..."),
+                        p("[header image?]"),
+                        p("I'm baby meditation banh mi succulents, listicle portland bespoke deep v. Godard literally 90's bespoke cloud bread pitchfork franzen helvetica cray vape. Try-hard microdosing fashion axe tumeric. Meditation cliche copper mug gochujang slow-carb. Mustache try-hard kale chips, next level roof party tilde keytar direct trade. Ethical chambray vice lumbersexual ramps franzen kinfolk subway tile man bun kogi yuccie hammock. Selvage semiotics microdosing, schlitz irony next level paleo XOXO subway tile listicle enamel pin."),
+                        p("Brunch try-hard tumblr flexitarian. Unicorn tacos schlitz, small batch farm-to-table listicle gastropub. Ugh ramps austin squid cold-pressed put a bird on it. Austin sustainable heirloom, iceland thundercats activated charcoal fanny pack twee neutra unicorn roof party. Selvage irony vegan butcher banh mi schlitz occupy marfa. XOXO etsy messenger bag yr tumblr pickled roof party photo booth. Single-origin coffee keytar dreamcatcher scenester, ennui authentic tofu.")
                       ),
              ),
              tabPanel("Map",
-                      tags$style(type = "text/css", "html, body { width: 100%; height: 100%}, .irs-grid-text{color: black, stroke: 2}" ),
+                      #tags$style(type = "text/css", "html, body { width: 100%; height: 100%}, .irs-grid-text{color: black, stroke: 2}" ),
                       tags$head(includeCSS("styles.css")),
                       tags$link(rel="stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"),
                       tags$link(rel="stylesheet", type = "text/css", href = "https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro"),
                       leafletOutput("map", width = "100%", height = 600),
                       absolutePanel(h3("The Case of Hephaistion"),
-                                    id = "controls", class = "panel panel-default", top = 85, right = 10,
+                                    id = "controls", class = "panel panel-default", top = 76, right = 10,
                                     fixed = TRUE, draggable = FALSE, width = 250, height = "auto",
                                     
                                     # Histogram 
@@ -53,8 +56,8 @@ ui <- #bootstrapPage(
                                     
                       ),
                       absolutePanel(
-                        id = "time", class = "panel panel-default", fixed = TRUE, draggable = FALSE,
-                        width = 350, height = "auto", top = 90, left = 60, align = "center", padding = 10, 
+                        id = "time", class = "panel panel-default", fixed = FALSE, draggable = FALSE,
+                        width = 350, height = "auto", top = 90, left = "49vw", align = "center", padding = 10, 
                         sliderTextInput(
                           inputId = "timeline",
                           label = "Timeline",
@@ -65,7 +68,20 @@ ui <- #bootstrapPage(
                           choices = c(600, 500, 400, 300, 200, 100)
                         )
                       )
-             )
+             ),
+             tabPanel("About",
+                      h3("About"),
+                      p("Brunch try-hard tumblr flexitarian. Unicorn tacos schlitz, small batch farm-to-table listicle gastropub. Ugh ramps austin squid cold-pressed put a bird on it. Austin sustainable heirloom, iceland thundercats activated charcoal fanny pack twee neutra unicorn roof party. Selvage irony vegan butcher banh mi schlitz occupy marfa. XOXO etsy messenger bag yr tumblr pickled roof party photo booth. Single-origin coffee keytar dreamcatcher scenester, ennui authentic tofu."),
+                      hr(),
+                      h3("Project Team"),
+                      HTML("<ul>
+                           <li>Jeanne Reames, <strong>Primary Investigator</strong><br>
+                           Associate Professor of History and Director of Ancient Mediterranean Studies, University of Nebraska at Omaha</li>
+                           <li>Jason Heppler, <strong>Digital Engagement Librarian</strong><br>
+                           Digital Engagement Librarian and Assistant Professor of History, University of Nebraska at Omaha</li>
+                           <li>Cory Starman, <strong>Developer</strong><br>
+                           Undergraduate Researcher, UNO '18</li>
+                           </ul>"))
   )
 
 server <- function(input, output, session) {
@@ -103,8 +119,6 @@ server <- function(input, output, session) {
   colorpalTwo <- reactive({
     colorFactor(palleteTwo, dataTwo$NameT)
   })
-  
-  
   
   output$map <- renderLeaflet({
     leaflet(data) %>% 
@@ -156,6 +170,7 @@ server <- function(input, output, session) {
   #filteredDataTwo %>% filter(DateNum >= input$timeline)
   
   observe({
+    req(input$tab_being_displayed == "Map") # Only display if tab is 'Map'
     # pal <- colorpal()
     # 
     # leafletProxy("map", data = filteredData()) %>% 
@@ -183,8 +198,6 @@ server <- function(input, output, session) {
     
     pal <- colorpal()
     palTwo <- colorpalTwo()
-    
-    
     
     ### Map dataset one
     if ("None" %in% input$Region) {
